@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>CS464 Final Project</title>
+		<meta name="generator" content="BBEdit 10.5" />
+
+	<!-- load matrix manipulation helper methods -->	
+		<script type="text/javascript" src="glMatrix_util.js"></script>
+		<script type="text/javascript" src="webgl-utils.js"></script>
+
+		<!-- load the game javascript-->
+		<script type="text/javascript" src="game.js"></script>
+		
+		<!-- shaders -->
+		<script id="shader-fs" type="x-shader/x-fragment">
+			precision mediump float;
+
+			varying vec2 vTextureCoord;
+			varying vec3 vLightWeighting; //lighting rgb color scaling factor
+
+			uniform sampler2D uSampler;
+
+			void main(void) 
+			{
+				vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+				gl_FragColor = vec4(textureColor.rgb * vLightWeighting, textureColor.a);				
+			}
+		</script>
+
+		<script id="shader-vs" type="x-shader/x-vertex">
+			attribute vec3 aVertexPosition;
+			attribute vec3 aVertexNormal;
+			attribute vec2 aTextureCoord;
+
+			uniform mat4 uMVMatrix;
+			uniform mat4 uPMatrix;
+			
+			uniform sampler2D uSampler;
+
+			varying vec2 vTextureCoord;
+			varying vec3 nVertexPosition;
+			varying vec4 colorVector;	
+			
+			//lighting "stuff"
+			uniform mat3 uNMatrix; //normal matrix
+			uniform vec3 uAmbientColor; //color of the ambient light
+			uniform vec3 uLightingDirection; //direction of the direcitonal light
+			uniform vec3 uDirectionalColor; //color of the directional light
+			varying vec3 vLightWeighting; //cumulation of both light sources for the vertex
+			
+
+
+			void main(void) {
+				//let the height of the image change with varying nVertexPosition[1]
+				nVertexPosition[0] = aVertexPosition[0]; //copy over passed in x
+				nVertexPosition[1] = 0.5; //set Y to constant 0.5 (overwritten later)
+				nVertexPosition[2] = aVertexPosition[2]; //copy over passed in z
+				vTextureCoord = aTextureCoord;
+				colorVector = texture2D(uSampler, vTextureCoord);
+				
+				//adjust the Y coordinate based on the color, quantified with sqrt(r^2 + g^2 + b^2)
+				float redSquared = colorVector[0] * colorVector[0];
+				float greenSquared = colorVector[1] * colorVector[1];
+				float blueSquared = colorVector[2] * colorVector[2];
+				float newY = sqrt(redSquared + greenSquared + blueSquared);
+				newY = (newY * (2.0 / sqrt(3.0))) - 1.0; //scale to -1 to 1
+				nVertexPosition[1] = newY;
+				
+				//set the position of the vertex
+				gl_Position = uPMatrix * uMVMatrix * vec4(nVertexPosition, 1.0);
+				
+				//calculate the lighting of the vertex
+				vec3 transformedNormal = uNMatrix * aVertexNormal;
+				float directionalLightWeighting = max(dot(transformedNormal, uLightingDirection), 0.0);
+				vLightWeighting = uAmbientColor + uDirectionalColor * directionalLightWeighting;
+			}
+		</script>
+
+	</head>
+
+	<!-- declare the "body" of the HTML document-->
+	<!-- the onload attribute specifies a javascript function to execute when the body tag is loaded into the browser -->
+
+	<body onload="launchGraphics()">
+		<h1>CS 464 Final Project</h1>
+		<h4>Jared Mart & Bryan Bixler</h4>
+
+		<h5> Drag the canvas left and right to steer the tank, drag up and down to go faster or slower </h5>
+
+		<table>
+			<td>
+				<!-- embed the HTML5 Canvas Drawing object on the page.-->
+				<!-- Name the canvas 'graphicsCanvas' for the javascript code. -->
+				<canvas id="graphicsCanvas" width=960 height=540>
+				If you're seeing this your web browser doesn't support the &lt;canvas>&gt; element. Ouch!
+				</canvas>
+			</td>
+
+			<td>
+				<h3>Pick a texture</h3>
+				<table style="border: 0; padding: 5px;">
+						<tr>
+							<td> <input type="radio" onclick="changeTexture('Textures/black.png');" name="texture" value="black"> Black<br> </td>
+							<td> <input type="radio" onclick="changeTexture('Textures/white.png');" name="texture" value="white"> White<br> </td>
+							<td> <input type="radio" onclick="changeTexture('Textures/heightmap.png');" name="texture" value="heightmap" checked> Height Map<br> </td>
+
+						</tr>
+				</table>
+
+				<h3>Directional Light:</h3>
+				<table style="border: 0; padding: 10px;">
+					<tr>
+						<td><b>Direction:</b></td>
+						<td>X: <input type="text" id="lightDirectionX" value="0.0" /></td>
+						<td>Y: <input type="text" id="lightDirectionY" value="-1.0" /></td>
+						<td>Z: <input type="text" id="lightDirectionZ" value="0.0" /></td>
+					</tr>	
+					<tr>	
+						<td><b>Color:</b></td>
+						<td>R: <input type="text" id="directionalR" value="1.0" /></td>
+						<td>G: <input type="text" id="directionalG" value="1.0" /></td>
+						<td>B: <input type="text" id="directionalB" value="1.0" /></td>
+					</tr>
+				</table>
+
+				<h3>Ambient light:</h3>
+				<table style="border: 0; padding: 10px;">
+					<tr>
+						<td><b>Color:</b></td>
+						<td>R: <input type="text" id="ambientR" value="0.5" /></td>
+						<td>G: <input type="text" id="ambientG" value="0.5" /></td>
+						<td>B: <input type="text" id="ambientB" value="0.5" /></td>
+					</tr>
+				</table>
+			</td>	
+		</table>
+	</body>
+</html>
