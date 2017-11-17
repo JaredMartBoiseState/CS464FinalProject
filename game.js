@@ -235,6 +235,25 @@ function initGeometry()
 	gridPointIndexBuffer.numItems = pointIndicesOffset;
 }
 
+function generateNormal(pt1, pt2, pt3, out)
+{
+	var V = vec3.create();
+	var W = vec3.create();
+	//console.log("pt1: " + pt1);
+	//console.log("pt2: " + pt2);
+	//console.log("pt3: " + pt3);
+	vec3.subtract(pt2,pt1,V); //V = pt2 - pt1
+	//console.log("V: " + V);
+	vec3.subtract(pt3, pt1, W); //W = pt3 - pt1
+	//console.log("W: " + W);
+	
+	vec3.cross(V,W,out); //normal is cross product of V and W	
+	vec3.negate(out, out); //negate the vector so it isnt upside down
+	vec3.normalize(out, out);
+	
+	return out;
+}
+
 
 // Initialize our texture data and prepare it for rendering
 var exTexture;
@@ -524,17 +543,17 @@ function drawScene() {
 	gl.drawElements(gl.TRIANGLES, gridPointIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 	
 	//lighting code
-	var ambientR = parseFloat(document.getElementById("ambientR").value);
-	var ambientG = parseFloat(document.getElementById("ambientG").value);
-	var ambientB = parseFloat(document.getElementById("ambientB").value);
+	var ambientR = 0.5;//parseFloat(document.getElementById("ambientR").value);
+	var ambientG = 0.5;//parseFloat(document.getElementById("ambientG").value);
+	var ambientB = 0.5;//parseFloat(document.getElementById("ambientB").value);
 	
-	var lightDirectionX = parseFloat(document.getElementById("lightDirectionX").value);
-	var lightDirectionY = parseFloat(document.getElementById("lightDirectionY").value);
-	var lightDirectionZ = parseFloat(document.getElementById("lightDirectionZ").value);
+	var lightDirectionX = 0.0;//parseFloat(document.getElementById("lightDirectionX").value);
+	var lightDirectionY = -1.0;//parseFloat(document.getElementById("lightDirectionY").value);
+	var lightDirectionZ = 0.0;//parseFloat(document.getElementById("lightDirectionZ").value);
 	
-	var directionalR = parseFloat(document.getElementById("directionalR").value);
-	var directionalG = parseFloat(document.getElementById("directionalG").value);
-	var directionalB = parseFloat(document.getElementById("directionalB").value);
+	var directionalR = 1.0;//parseFloat(document.getElementById("directionalR").value);
+	var directionalG = 1.0;//parseFloat(document.getElementById("directionalG").value);
+	var directionalB = 1.0;//parseFloat(document.getElementById("directionalB").value);
 	
 	var lightingDirection = [lightDirectionX, lightDirectionY, lightDirectionZ];
 	var adjustedLightingDirection = vec3.create();
