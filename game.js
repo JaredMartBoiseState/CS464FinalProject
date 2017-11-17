@@ -248,7 +248,7 @@ function initTextures()
       handleLoadedTexture(exTexture)
     }
 
-    exTexture.image.src = "Textures/heightmap.png";
+    exTexture.image.src = "Textures/track1.png";
   }
 
 function handleLoadedTexture(texture)
@@ -364,6 +364,13 @@ function getTankPos()
 	
 	newTankPos[1] = getPixelHeight(newTankPos[0], newTankPos[2]); //set the tank's height based on the terrain, add a little bit to be above the terrain
 	
+	if (newTankPos[1] < 0)
+	{
+		lose();
+		newTankPos = vec3.create([0, getPixelHeight(0,0), 0]);
+
+	}
+	
 	//handle out of bounds driving by resetting location to 0,0
 	var newX = newTankPos[0];
 	var newY = newTankPos[1];
@@ -395,7 +402,7 @@ function getPixelHeight(x, z)
 		
 		pixelHeight = Math.sqrt(red * red + green * green + blue * blue); //height is between 0 and sqrt(3)
 		pixelHeight	= (pixelHeight * (2 / Math.sqrt(3))) - 1.0; //scale to -1 to 1
-		pixelHeight = pixelHeight + 0.15;
+		pixelHeight = pixelHeight + 0.05;
 		//console.log(pixelHeight);
 	}
 	
@@ -412,7 +419,7 @@ function getTarget()
 	vec3.scale(viewDirection, targetDistance, newTargetOffset); //scale the viewDirection to the size of a pixel to find the target offset
 	vec3.add(tankPos, newTargetOffset, newTarget); //add the offset to the current location to find the target
 
-	newTarget[1] = getPixelHeight(newTarget[0], newTarget[2]); //make sure the y value of the new point is correct
+	//newTarget[1] = getPixelHeight(newTarget[0], newTarget[2]); //make sure the y value of the new point is correct
 	
 	
 	return newTarget;
@@ -422,55 +429,13 @@ function getUpVector()
 {
 	var newNormal = vec3.create([0,1,0]);
 		
-	//make a triangle out of the current position, and one pixel higher in the x-axis, and one pixel higher in the z-axis
-	var tankX = tankPos[0];
-	var tankY = tankPos[1]; 
-	var tankZ = tankPos[2]; 
-	var onePixel = 0.1; //2 / exTexture.image.width; //one pixel distance (causes strange things)
-	//console.log("onePixel: " + onePixel);
-	
-	
-	var point1 = vec3.create([tankX, tankY, tankZ]);
-	var point2 = vec3.create([tankX + onePixel, getPixelHeight(tankX + onePixel, tankZ), tankZ]);
-	var point3 = vec3.create([tankX, getPixelHeight(tankX, tankZ + onePixel), tankZ + onePixel]);
-	
-	var pt1 = vec3.create([toInt(point1[0]), toInt(point1[1]), toInt(point1[2])]);
-	var pt2 = vec3.create([toInt(point2[0]), toInt(point2[1]), toInt(point2[2])]);
-	var pt3 = vec3.create([toInt(point3[0]), toInt(point3[1]), toInt(point3[2])]);
-	//console.log("point1: " + pt1 + " point2: " + pt2 + " point3: " + pt3);
-	
-	generateNormal(pt1, pt2, pt3, newNormal);
-	vec3.normalize(newNormal, newNormal);
-	//console.log("newNormal: " + newNormal);
-		
 	return newNormal;
 }
 
-function toInt(num)
+function lose()
 {
-	return Math.round((num / 2) * exTexture.image.width);
+	alert("You lose");
 }
-
-function generateNormal(pt1, pt2, pt3, out)
-{
-	var V = vec3.create();
-	var W = vec3.create();
-	//console.log("pt1: " + pt1);
-	//console.log("pt2: " + pt2);
-	//console.log("pt3: " + pt3);
-	vec3.subtract(pt2,pt1,V); //V = pt2 - pt1
-	//console.log("V: " + V);
-	vec3.subtract(pt3, pt1, W); //W = pt3 - pt1
-	//console.log("W: " + W);
-	
-	vec3.cross(V,W,out); //normal is cross product of V and W	
-	vec3.negate(out, out); //negate the vector so it isnt upside down
-	vec3.normalize(out, out);
-	
-	return out;
-}
-
-
 
 function handleMouseDown()
 {
