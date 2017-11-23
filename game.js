@@ -168,7 +168,7 @@ function initGeometry()
 			
 			//normal for each vertex for lighting using the Y coordinate as a simple vector [0,Y,0]
 			vertexNormals[0 + arrayOffset] = 0.0;
-			vertexNormals[1 + arrayOffset] = vertices[1 + arrayOffset];
+			vertexNormals[1 + arrayOffset] = 1;
 			vertexNormals[2 + arrayOffset] = 0.0;
 			
 			arrayOffset = arrayOffset + 3;
@@ -342,7 +342,7 @@ var mouseDown = false;
 var tankSpeed = 0; //speed of the tank over terrain
 var speedScaleFactor = 100000; //division factor to reduce drastic speed changes from small mouse movements
 var tankPos = vec3.create([0,0.5,0]); //tank position: 0,0,0
-var viewDirection = vec3.create([0,0,-1]); //direction the tank is looking, default to straight at the z axis
+var viewDirection = vec3.create([0,0, 1]); //direction the tank is looking, default to straight at the z axis
 var viewMatrix = mat4.create();
 mat4.identity(viewMatrix);
 var tankAngle = 0.0; //angle the tank is facing, degrees off of the y-axis
@@ -370,7 +370,7 @@ function getViewMatrix()
 
 function setViewDirection()
 {
-	viewDirection = mat4.multiplyVec3(rotationMatrix, vec3.create([0,0,-1]), viewDirection);
+	viewDirection = mat4.multiplyVec3(rotationMatrix, vec3.create([0,0, 1]), viewDirection);
 	vec3.normalize(viewDirection, viewDirection);
 }
 
