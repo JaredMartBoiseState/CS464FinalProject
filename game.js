@@ -69,44 +69,71 @@ function getShader(gl, id)
 }
 
 
-var shaderProgram;
+var trackShader;
+var playerModelShader;
 
 function initShaders() 
 {
-	
-	var fragmentShader = getShader(gl, "shader-fs");
-	var vertexShader = getShader(gl, "shader-vs");
+	initTrackShader();
+	initPlayerModelShader();
 
-	shaderProgram = gl.createProgram();
-	gl.attachShader(shaderProgram, vertexShader);
-	gl.attachShader(shaderProgram, fragmentShader);
-	gl.linkProgram(shaderProgram);
+}
 
-	if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+function initPlayerModelShader()
+{
+	var fragmentShader = getShader(gl, "shader-playerModelFS");
+	var vertexShader = getShader(gl, "shader-playerModelVS");
+
+	playerModelShader = gl.createProgram();
+	gl.attachShader(playerModelShader, vertexShader);
+	gl.attachShader(playerModelShader, fragmentShader);
+	gl.linkProgram(playerModelShader);
+
+	if (!gl.getProgramParameter(playerModelShader, gl.LINK_STATUS)) {
 		alert("Could not initialise shaders");
 	}
 
-	gl.useProgram(shaderProgram);
-
-	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");		
-	gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+	playerModelShader.vertexPositionAttribute = gl.getAttribLocation(playerModelShader, "aVertexPosition");		
+	gl.enableVertexAttribArray(playerModelShader.vertexPositionAttribute);
 	
-	shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
-	gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-	
-	shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-	gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
+	playerModelShader.vertexColorAttribute = gl.getAttribLocation(playerModelShader, "aVertexColor");
+	gl.enableVertexAttribArray(playerModelShader.vertexColorAttribute);
 
-	shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
-	shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-	shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
-	shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
-	shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
-	shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
-	shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
+	playerModelShader.pMatrixUniform = gl.getUniformLocation(playerModelShader, "uPMatrix");
+	playerModelShader.mvMatrixUniform = gl.getUniformLocation(playerModelShader, "uMVMatrix");
 }
 
+function initTrackShader()
+{
+	var fragmentShader = getShader(gl, "shader-fs");
+	var vertexShader = getShader(gl, "shader-vs");
 
+	trackShader = gl.createProgram();
+	gl.attachShader(trackShader, vertexShader);
+	gl.attachShader(trackShader, fragmentShader);
+	gl.linkProgram(trackShader);
+
+	if (!gl.getProgramParameter(trackShader, gl.LINK_STATUS)) {
+		alert("Could not initialise shaders");
+	}
+
+	trackShader.vertexPositionAttribute = gl.getAttribLocation(trackShader, "aVertexPosition");		
+	gl.enableVertexAttribArray(trackShader.vertexPositionAttribute);
+	
+	trackShader.vertexNormalAttribute = gl.getAttribLocation(trackShader, "aVertexNormal");
+	gl.enableVertexAttribArray(trackShader.vertexNormalAttribute);
+	
+	trackShader.textureCoordAttribute = gl.getAttribLocation(trackShader, "aTextureCoord");
+	gl.enableVertexAttribArray(trackShader.textureCoordAttribute);
+
+	trackShader.pMatrixUniform = gl.getUniformLocation(trackShader, "uPMatrix");
+	trackShader.mvMatrixUniform = gl.getUniformLocation(trackShader, "uMVMatrix");
+	trackShader.nMatrixUniform = gl.getUniformLocation(trackShader, "uNMatrix");
+	trackShader.samplerUniform = gl.getUniformLocation(trackShader, "uSampler");
+	trackShader.ambientColorUniform = gl.getUniformLocation(trackShader, "uAmbientColor");
+	trackShader.lightingDirectionUniform = gl.getUniformLocation(trackShader, "uLightingDirection");
+	trackShader.directionalColorUniform = gl.getUniformLocation(trackShader, "uDirectionalColor");
+}
 
 // create our basic model and view matrix
 var mvMatrix = mat4.create();
@@ -132,13 +159,13 @@ function mvPopMatrix()
 
 function setMatrixUniforms()
 {
-    gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-    gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(trackShader.pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(trackShader.mvMatrixUniform, false, mvMatrix);
 	
 	var normalMatrix = mat3.create();
 	mat4.toInverseMat3(mvMatrix, normalMatrix);
 	mat3.transpose(normalMatrix);
-	gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
+	gl.uniformMatrix3fv(trackShader.nMatrixUniform, false, normalMatrix);
 }
 
 
@@ -148,7 +175,7 @@ var gridPointTextureCoordBuffer;
 var gridPointIndexBuffer;
 var gridPointNormalBuffer;
 
-function initGeometry()
+function initTrackGeometry()
 {
 	//create the vertices and give them normals		
 	var vertices = [];
@@ -235,6 +262,118 @@ function initGeometry()
 	gridPointIndexBuffer.numItems = pointIndicesOffset;
 }
 
+function initPlayerModelGeometry()
+{
+	    //create the vertices
+        var vertices = 
+		[
+            // Front face
+            -1.0, -1.0,  1.0,
+             1.0, -1.0,  1.0,
+             1.0,  1.0,  1.0,
+            -1.0,  1.0,  1.0,
+
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0,  1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0, -1.0, -1.0,
+
+            // Top face
+            -1.0,  1.0, -1.0,
+            -1.0,  1.0,  1.0,
+             1.0,  1.0,  1.0,
+             1.0,  1.0, -1.0,
+
+            // Bottom face
+            -1.0, -1.0, -1.0,
+             1.0, -1.0, -1.0,
+             1.0, -1.0,  1.0,
+            -1.0, -1.0,  1.0,
+
+            // Right face
+             1.0, -1.0, -1.0,
+             1.0,  1.0, -1.0,
+             1.0,  1.0,  1.0,
+             1.0, -1.0,  1.0,
+
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0,  1.0,
+            -1.0,  1.0,  1.0,
+            -1.0,  1.0, -1.0
+		];
+		
+		cubeVertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        cubeVertexPositionBuffer.itemSize = 3;
+        cubeVertexPositionBuffer.numItems = 24;
+		
+		//vertex colors
+		var cubeVertexColors = 
+		[
+			//front face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0,
+			
+			//back face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0,
+			
+			//top face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0,
+			
+			//bottom face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0,
+			
+			//left face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0,
+			
+			//right face
+			1.0, 0.0, 0.0, 1.0,
+			0.0, 1.0, 0.0, 1.0,
+			0.0, 0.0, 1.0, 1.0,
+			1.0, 0.0, 1.0, 1.0			
+		];
+		cubeVertexColorBuffer = gl.createBuffer();
+		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeVertexColors), gl.STATIC_DRAW);
+		cubeVertexColorBuffer.itemSize = 4;
+		cubeVertexColorBuffer.numItems = 24;
+		
+		//index for triangles		
+		var cubeVertexIndices = 
+		[
+			0, 1, 2,      0, 2, 3,    // Front face
+            4, 5, 6,      4, 6, 7,    // Back face
+            8, 9, 10,     8, 10, 11,  // Top face
+            12, 13, 14,   12, 14, 15, // Bottom face
+            16, 17, 18,   16, 18, 19, // Right face
+            20, 21, 22,   20, 22, 23  // Left face
+		];
+
+		cubeVertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+        cubeVertexIndexBuffer.itemSize = 1;
+        cubeVertexIndexBuffer.numItems = 36;
+}
+
+
 function generateNormal(pt1, pt2, pt3, out)
 {
 	var V = vec3.create();
@@ -318,13 +457,12 @@ function launchGraphics()
    
    // now build basic geometry objects.
    initShaders();
-   initGeometry();
+   initTrackGeometry();
+   initPlayerModelGeometry();
    initTextures();
    
    var canvas = document.getElementById("graphicsCanvas");
-   canvas.onmousedown = handleMouseDown;
-   document.onmouseup = handleMouseUp;
-   document.onmousemove = handleMouseMove;
+   window.addEventListener("keydown", handleKeyPressed, false);
    
    gl.clearColor(0.1,0.1,0.1,1.0);
    gl.enable(gl.DEPTH_TEST);
@@ -334,14 +472,9 @@ function launchGraphics()
    
 }
 
-var currMouseX = 0.0;
-var currMouseY = 0.0;
-var rotateScaleFactor = 3; 
-var mouseDown = false;
-
 var tankSpeed = 0; //speed of the tank over terrain
 var speedScaleFactor = 100000; //division factor to reduce drastic speed changes from small mouse movements
-var tankPos = vec3.create([0,0.5,0]); //tank position: 0,0,0
+var playerModelPos = vec3.create([0.0, 1.0 , 0.0]); //tank position: 0,0,0
 var viewDirection = vec3.create([0,0, 1]); //direction the tank is looking, default to straight at the z axis
 var viewMatrix = mat4.create();
 mat4.identity(viewMatrix);
@@ -354,18 +487,37 @@ mat4.identity(rotationMatrix);
 
 function getViewMatrix()
 {
-	setViewDirection(); //get the rotational direction of the tank
+	//setViewDirection(); //get the rotational direction of the tank
 	//console.log("viewDirection: " + viewDirection);
-	tankPos = getTankPos();
-	//console.log("tankpos: " + tankPos);
-	target = getTarget();
+	//playerModelPos = getPlayerModelPos();
+	//console.log("playerModelPos: " + playerModelPos);
+	//target = getTarget();
 	//console.log("target: " + target);
-	tankUpVector = getUpVector();
+	//tankUpVector = getUpVector();
 	//console.log("tankupvector: " + tankUpVector);
 	
 	//now generate the view matrix
 	mat4.identity(mvMatrix);
-	mat4.lookAt(tankPos, target, tankUpVector, mvMatrix);
+	//mat4.lookAt(playerModelPos, target, tankUpVector, mvMatrix);
+	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 1.0, playerModelPos[2] - 1.0]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
+}
+
+function getTrackViewMatrix()
+{
+	mat4.identity(mvMatrix);
+	playerModelPos = getPlayerModelPos();
+	//console.log(playerModelPos);
+	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 0.05, playerModelPos[2] - 0.25]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
+	//mat4.multiply(mvMatrix, rotationMatrix);
+}
+
+function getPlayerModelViewMatrix()
+{
+	mat4.identity(mvMatrix);
+	//var rotationMatrix = mat4.create();
+	//mat4.rotate(rotationMatrix, degToRad(45), [1,0,0]);
+	//mat4.multiply(mvMatrix, rotationMatrix);
+	mat4.translate(mvMatrix, vec3.create([0.0, 0.0, -20.0]));
 }
 
 function setViewDirection()
@@ -374,32 +526,34 @@ function setViewDirection()
 	vec3.normalize(viewDirection, viewDirection);
 }
 
-function getTankPos()
+function getPlayerModelPos()
 {
-	var newTankPosOffset = vec3.create(); //distance to the new pos
-	var newTankPos = vec3.create(); //the new pos
-	vec3.scale(viewDirection, tankSpeed, newTankPosOffset); //multiply the direction by the speed to get the offset distance
-	vec3.add(tankPos, newTankPosOffset, newTankPos); //add the offset to the current position to get the new one
+	var newPlayerModelPos = playerModelPos; //the new pos
+	newPlayerModelPos[0] += xSpeed;
+	newPlayerModelPos[2] += zSpeed;
 	
-	newTankPos[1] = getPixelHeight(newTankPos[0], newTankPos[2]); //set the tank's height based on the terrain, add a little bit to be above the terrain
+	newPlayerModelPos[1] = getPixelHeight(newPlayerModelPos[0], newPlayerModelPos[2]); //set the tank's height based on the terrain, add a little bit to be above the terrain
 	
-	if (newTankPos[1] < 0)
+	if (newPlayerModelPos[1] < 0)
 	{
+		newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
+		xSpeed = 0;
+		zSpeed = 0;
 		lose();
-		newTankPos = vec3.create([0, getPixelHeight(0,0), 0]);
-
 	}
 	
+	newPlayerModelPos[1] = 0.0;
+	
 	//handle out of bounds driving by resetting location to 0,0
-	var newX = newTankPos[0];
-	var newY = newTankPos[1];
-	var newZ = newTankPos[2];
+	var newX = newPlayerModelPos[0];
+	var newY = newPlayerModelPos[1];
+	var newZ = newPlayerModelPos[2];
 	if (newX > 1.0 || newX < -1.0 || newZ > 1.0 || newZ < -1.0) //tank is out of bounds
 	{
-		newTankPos = vec3.create([0, getPixelHeight(0,0), 0]);
+		newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
 	}	
 	
-	return newTankPos;
+	return newPlayerModelPos;
 }
 
 function getPixelHeight(x, z)
@@ -421,27 +575,10 @@ function getPixelHeight(x, z)
 		
 		pixelHeight = Math.sqrt(red * red + green * green + blue * blue); //height is between 0 and sqrt(3)
 		pixelHeight	= (pixelHeight * (2 / Math.sqrt(3))) - 1.0; //scale to -1 to 1
-		pixelHeight = pixelHeight + 0.05;
 		//console.log(pixelHeight);
 	}
 	
 	return pixelHeight;
-}
-
-function getTarget()
-{
-	
-	var targetDistance = 0.1; //the distance to the target
-	var newTargetOffset = vec3.create(); //the offset to the next point (vector of offsets)
-	var newTarget = vec3.create(); //the target point
-	
-	vec3.scale(viewDirection, targetDistance, newTargetOffset); //scale the viewDirection to the size of a pixel to find the target offset
-	vec3.add(tankPos, newTargetOffset, newTarget); //add the offset to the current location to find the target
-
-	//newTarget[1] = getPixelHeight(newTarget[0], newTarget[2]); //make sure the y value of the new point is correct
-	
-	
-	return newTarget;
 }
 
 function getUpVector()
@@ -456,45 +593,36 @@ function lose()
 	alert("You lose");
 }
 
-function handleMouseDown()
+var xSpeed = 0.0;
+var zSpeed = 0.0;
+var speedChange = 0.001;
+function handleKeyPressed(key)
 {
-	mouseDown = true;
-	currMouseX = event.clientX;
-	currMouseY = event.clientY;
-	
-}
-
-function handleMouseUp()
-{
-	mouseDown = false;
-}
-
-function handleMouseMove()
-{
-	if (!mouseDown)
+	if (key.code == "ArrowLeft")
 	{
-		return;
+		//console.log("left");
+		xSpeed += speedChange;
 	}
-	
-	var newMouseX = event.clientX;
-	var newMouseY = event.clientY;
-	
-	var newRotationMatrix = mat4.create();
-	mat4.identity(newRotationMatrix);
-	
-	//set the rotation of the view direction
-	var deltaX = newMouseX - currMouseX; //record the change in x
-	tankAngle = -(deltaX / tankRotationScaleFactor); //scale the change in x in pixels to get a relative angle to rotate
-	mat4.rotate(newRotationMatrix, degToRad(tankAngle), vec3.create([0,1,0])); //create a new rotation matrix using the angle and the tank's up vector
-	mat4.multiply(newRotationMatrix, rotationMatrix, rotationMatrix); //multiply the existing rotation matrix by the new one
-	
-	var deltaY = newMouseY - currMouseY;
-	tankSpeed -= deltaY / speedScaleFactor;
-	//console.log("speed: " + tankSpeed);
-	
-	currMouseX = newMouseX;
-	currMouseY = newMouseY;
+	if (key.code == "ArrowUp")
+	{
+		//console.log("up");
+		zSpeed += speedChange;
+	}
+	if (key.code == "ArrowRight")
+	{
+		//console.log("right");
+		xSpeed -= speedChange;
+	}
+	if (key.code == "ArrowDown")
+	{
+		//console.log("down");
+		zSpeed -= speedChange;
+	}
+//	console.log("xSpeed: " + xSpeed);
+	//console.log("zSpeed: " + zSpeed);
+	//console.log(key);
 }
+
 
 function degToRad(deg) 
 {
@@ -507,36 +635,26 @@ function degToRad(deg)
 // OpenGL has convenience methods for this such as glPerspective().
 // finally we call the gl draw methods to draw our defined geometry objects.
 
-var zoomLevel = -5.0;
-
-function changeZoom(newZoom)
-{
-	zoomLevel = newZoom;
-}
     
-function drawScene() {
-	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-	
-	getViewMatrix();
+function drawTrack() 
+{
+	getTrackViewMatrix();
 	
 	//mat4.translate(mvMatrix, [0.0, 0.0, zoomLevel]);
 	//console.log(mvMatrix);
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointPositionBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, gridPointPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(trackShader.vertexPositionAttribute, gridPointPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointTextureCoordBuffer);
-	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, gridPointTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(trackShader.textureCoordAttribute, gridPointTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 	
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointNormalBuffer);
-	gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, gridPointNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
+	gl.vertexAttribPointer(trackShader.vertexNormalAttribute, gridPointNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, exTexture);
-	gl.uniform1i(shaderProgram.samplerUniform, 0);
+	gl.uniform1i(trackShader.samplerUniform, 0);
 
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridPointIndexBuffer);
 	setMatrixUniforms();
@@ -560,13 +678,44 @@ function drawScene() {
 	
 	vec3.normalize(lightingDirection, adjustedLightingDirection);
 	vec3.scale(adjustedLightingDirection, -1);
-	gl.uniform3f(shaderProgram.ambientColorUniform, ambientR, ambientG, ambientB);
-	gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLightingDirection);
+	gl.uniform3f(trackShader.ambientColorUniform, ambientR, ambientG, ambientB);
+	gl.uniform3fv(trackShader.lightingDirectionUniform, adjustedLightingDirection);
 	
-	gl.uniform3f(shaderProgram.directionalColorUniform, directionalR, directionalG, directionalB);
+	gl.uniform3f(trackShader.directionalColorUniform, directionalR, directionalG, directionalB);
 	
 }	
 
+function drawPlayerModel()
+{
+	//set up the model view matrix
+	getPlayerModelViewMatrix();
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
+	gl.vertexAttribPointer(playerModelShader.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+	gl.vertexAttribPointer(playerModelShader.vertexColorAttribute, cubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+	
+	gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
+	gl.uniformMatrix4fv(playerModelShader.mvMatrixUniform, false, mvMatrix);
+}
+
+function drawScene()
+{
+	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+	
+	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	
+	gl.useProgram(trackShader);
+	drawTrack();
+	
+	gl.useProgram(playerModelShader);
+	drawPlayerModel();
+}
 
 function Frames() {
 	requestAnimFrame(Frames);
