@@ -542,6 +542,20 @@ function getPlayerModelPos()
 		lose();
 	}
 	
+	if (pixelColors)
+	{
+		//console.log("x, z: " + newPlayerModelPos[0], newPlayerModelPos[2]);
+		var pixelColor = getPixelColor(newPlayerModelPos[0], newPlayerModelPos[2]);
+		//console.log("pixelColor: " + pixelColor);
+		if (pixelColor[0] > 215 && pixelColor[1] < 50 && pixelColor[2] < 50) //win condition, red pixel
+		{
+			newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
+			xSpeed = 0;
+			zSpeed = 0;
+			win();
+		}
+	}
+	
 	newPlayerModelPos[1] = 0.0;
 	
 	//handle out of bounds driving by resetting location to 0,0
@@ -581,6 +595,26 @@ function getPixelHeight(x, z)
 	return pixelHeight;
 }
 
+function getPixelColor(x, z)
+{
+	var pixelArrayOffset = 0;
+	var xOffset = Math.round(((x + 1.0) / 2) * exTexture.image.width);
+	var yOffset = Math.round(((z + 1.0) / 2) * exTexture.image.height);
+	//console.log("xOffset: " + xOffset + " yOffset: " + yOffset);
+
+	pixelArrayOffset = (yOffset * exTexture.image.width * 4) + (4 * xOffset);
+	
+	var color = vec3.create();
+	
+	color[0] = pixelColors[pixelArrayOffset + 0];
+	color[1] = pixelColors[pixelArrayOffset + 1];
+	color[2] = pixelColors[pixelArrayOffset + 2];
+	//console.log(color);
+	
+	return color;
+
+}
+
 function getUpVector()
 {
 	var newNormal = vec3.create([0,1,0]);
@@ -591,6 +625,11 @@ function getUpVector()
 function lose()
 {
 	alert("You lose");
+}
+
+function win()
+{
+	alert("You Win!");
 }
 
 var xSpeed = 0.0;
