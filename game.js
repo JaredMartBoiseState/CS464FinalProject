@@ -157,17 +157,6 @@ function mvPopMatrix()
 	mvMatrix = mvMatrixStack.pop();
 }
 
-function setMatrixUniforms()
-{
-    gl.uniformMatrix4fv(trackShader.pMatrixUniform, false, pMatrix);
-    gl.uniformMatrix4fv(trackShader.mvMatrixUniform, false, mvMatrix);
-	
-	var normalMatrix = mat3.create();
-	mat4.toInverseMat3(mvMatrix, normalMatrix);
-	mat3.transpose(normalMatrix);
-	gl.uniformMatrix3fv(trackShader.nMatrixUniform, false, normalMatrix);
-}
-
 
 // create and initialize our geometry objects
 var gridPointPositionBuffer;
@@ -458,6 +447,7 @@ function launchGraphics()
    // now build basic geometry objects.
    initShaders();
    initTrackGeometry();
+   initTrackLighting();
    initPlayerModelGeometry();
    initTextures();
    
@@ -471,6 +461,37 @@ function launchGraphics()
    // If doing an animation need to add code to rotate our geometry
    
 }
+
+var ambientColor;
+var directionalColor;
+var lightingDirection;
+var adjustedLightingDirection;
+
+function initTrackLighting()
+{
+	//lighting code
+	var ambientR = 0.5;//parseFloat(document.getElementById("ambientR").value);
+	var ambientG = 0.5;//parseFloat(document.getElementById("ambientG").value);
+	var ambientB = 0.5;//parseFloat(document.getElementById("ambientB").value);
+	
+	var lightDirectionX = 0.0;//parseFloat(document.getElementById("lightDirectionX").value);
+	var lightDirectionY = -1.0;//parseFloat(document.getElementById("lightDirectionY").value);
+	var lightDirectionZ = 0.0;//parseFloat(document.getElementById("lightDirectionZ").value);
+	
+	var directionalR = 1.0;//parseFloat(document.getElementById("directionalR").value);
+	var directionalG = 1.0;//parseFloat(document.getElementById("directionalG").value);
+	var directionalB = 1.0;//parseFloat(document.getElementById("directionalB").value);
+	
+	ambientColor = vec3.create([ambientR, ambientG, ambientB]);
+	directionalColor = vec3.create([directionalR, directionalG, directionalB]);
+	lightingDirection = [lightDirectionX, lightDirectionY, lightDirectionZ];
+	adjustedLightingDirection = vec3.create();
+	
+	vec3.normalize(lightingDirection, adjustedLightingDirection);
+	vec3.scale(adjustedLightingDirection, -1);
+
+}
+
 
 var tankSpeed = 0; //speed of the tank over terrain
 var speedScaleFactor = 100000; //division factor to reduce drastic speed changes from small mouse movements
@@ -678,10 +699,7 @@ function degToRad(deg)
 function drawTrack() 
 {
 	getTrackViewMatrix();
-	
-	//mat4.translate(mvMatrix, [0.0, 0.0, zoomLevel]);
-	//console.log(mvMatrix);
-	
+		
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointPositionBuffer);
 	gl.vertexAttribPointer(trackShader.vertexPositionAttribute, gridPointPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -693,34 +711,23 @@ function drawTrack()
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, exTexture);
-	gl.uniform1i(trackShader.samplerUniform, 0);
-
+	gl.uniform1i(trackShader.samplerUniform, 0);	
+	
+	var normalMatrix = mat3.create();
+	mat4.toInverseMat3(mvMatrix, normalMatrix);
+	mat3.transpose(normalMatrix);
+	gl.uniformMatrix3fv(trackShader.nMatrixUniform, false, normalMatrix);
+	gl.uniform3fv(trackShader.ambientColorUniform, ambientColor);
+	gl.uniform3fv(trackShader.lightingDirectionUniform, adjustedLightingDirection);
+	gl.uniform3fv(trackShader.directionalColorUniform, directionalColor);
+	
+	gl.uniformMatrix4fv(trackShader.pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(trackShader.mvMatrixUniform, false, mvMatrix);
+	
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridPointIndexBuffer);
-	setMatrixUniforms();
 	gl.drawElements(gl.TRIANGLES, gridPointIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 	
-	//lighting code
-	var ambientR = 0.5;//parseFloat(document.getElementById("ambientR").value);
-	var ambientG = 0.5;//parseFloat(document.getElementById("ambientG").value);
-	var ambientB = 0.5;//parseFloat(document.getElementById("ambientB").value);
-	
-	var lightDirectionX = 0.0;//parseFloat(document.getElementById("lightDirectionX").value);
-	var lightDirectionY = -1.0;//parseFloat(document.getElementById("lightDirectionY").value);
-	var lightDirectionZ = 0.0;//parseFloat(document.getElementById("lightDirectionZ").value);
-	
-	var directionalR = 1.0;//parseFloat(document.getElementById("directionalR").value);
-	var directionalG = 1.0;//parseFloat(document.getElementById("directionalG").value);
-	var directionalB = 1.0;//parseFloat(document.getElementById("directionalB").value);
-	
-	var lightingDirection = [lightDirectionX, lightDirectionY, lightDirectionZ];
-	var adjustedLightingDirection = vec3.create();
-	
-	vec3.normalize(lightingDirection, adjustedLightingDirection);
-	vec3.scale(adjustedLightingDirection, -1);
-	gl.uniform3f(trackShader.ambientColorUniform, ambientR, ambientG, ambientB);
-	gl.uniform3fv(trackShader.lightingDirectionUniform, adjustedLightingDirection);
-	
-	gl.uniform3f(trackShader.directionalColorUniform, directionalR, directionalG, directionalB);
+
 	
 }	
 
@@ -735,11 +742,13 @@ function drawPlayerModel()
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
 	gl.vertexAttribPointer(playerModelShader.vertexColorAttribute, cubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+		gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
+	gl.uniformMatrix4fv(playerModelShader.mvMatrixUniform, false, mvMatrix);
+	
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 	
-	gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
-	gl.uniformMatrix4fv(playerModelShader.mvMatrixUniform, false, mvMatrix);
+
 }
 
 function drawScene()
@@ -754,6 +763,8 @@ function drawScene()
 	
 	gl.useProgram(playerModelShader);
 	drawPlayerModel();
+	
+
 }
 
 function Frames() {
