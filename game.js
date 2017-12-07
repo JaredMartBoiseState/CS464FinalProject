@@ -170,7 +170,7 @@ function initTrackGeometry()
 	var vertices = [];
 	var vertexNormals = [];
 	
-	let gridSize = 100; //the size of the point grid
+	let gridSize = 200; //the size of the point grid
 	var arrayOffset = 0; //the current offset into the arrays
 	
 	for (i = 0; i < gridSize; i++)
@@ -179,12 +179,12 @@ function initTrackGeometry()
 		{
 			//in order to index properly into the array, we need to compensate for the offset
 			vertices[0 + arrayOffset] = ((j * 1.0) / (gridSize / 2)) - 1.0; //vary X values from -1.0 to 1.0
-			vertices[1 + arrayOffset] = (Math.random() * 2) - 1.0; //set Y value to random number between -1.0 and 1.0
+			vertices[1 + arrayOffset] = 0; //set Y value to 0
 			vertices[2 + arrayOffset] = ((i * 1.0) / (gridSize / 2)) - 1.0; //vary Z values from -1.0 to 1.0
 			
 			//normal for each vertex for lighting using the Y coordinate as a simple vector [0,Y,0]
 			vertexNormals[0 + arrayOffset] = 0.0;
-			vertexNormals[1 + arrayOffset] = 1;
+			vertexNormals[1 + arrayOffset] = 1.0;
 			vertexNormals[2 + arrayOffset] = 0.0;
 			
 			arrayOffset = arrayOffset + 3;
@@ -233,13 +233,13 @@ function initTrackGeometry()
 		for (j = 0; j < gridSize - 1; j++)
 		{
 			//create the triangles for each quad of the grid
-			gridPointIndices[pointIndicesOffset++] = (i * 100) + j + 0; //bot-left lower triangle
-			gridPointIndices[pointIndicesOffset++] = (i * 100) + j + 1; //bot-right lower triangle
-			gridPointIndices[pointIndicesOffset++] = ((i + 1) * 100) + j + 0; //top-left lower triangle
+			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 0; //bot-left lower triangle
+			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 1; //bot-right lower triangle
+			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 0; //top-left lower triangle
 			
-			gridPointIndices[pointIndicesOffset++] = ((i + 1) * 100) + j + 0; //top-left upper triangle
-			gridPointIndices[pointIndicesOffset++] = (i * 100) + j + 1; //bot-right upper triangle
-			gridPointIndices[pointIndicesOffset++] = ((i + 1) * 100) + j + 1; //top-right upper triangle
+			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 0; //top-left upper triangle
+			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 1; //bot-right upper triangle
+			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 1; //top-right upper triangle
 			
 		}
 	}
@@ -451,6 +451,8 @@ function launchGraphics()
    initPlayerModelGeometry();
    initTextures();
    
+   mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.01, 100.0, pMatrix);
+   
    var canvas = document.getElementById("graphicsCanvas");
    window.addEventListener("keydown", handleKeyPressed, false);
    
@@ -497,23 +499,6 @@ var playerModelPos = vec3.create([0.0, 1.0 , 0.0]); //tank position: 0,0,0
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
-function getViewMatrix()
-{
-	//setViewDirection(); //get the rotational direction of the tank
-	//console.log("viewDirection: " + viewDirection);
-	//playerModelPos = getPlayerModelPos();
-	//console.log("playerModelPos: " + playerModelPos);
-	//target = getTarget();
-	//console.log("target: " + target);
-	//tankUpVector = getUpVector();
-	//console.log("tankupvector: " + tankUpVector);
-	
-	//now generate the view matrix
-	mat4.identity(mvMatrix);
-	//mat4.lookAt(playerModelPos, target, tankUpVector, mvMatrix);
-	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 1.0, playerModelPos[2] - 1.0]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
-}
-
 function getTrackViewMatrix()
 {
 	mat4.identity(mvMatrix);
@@ -524,21 +509,11 @@ function getTrackViewMatrix()
 		mat4.multiply(mvMatrix, rotationMatrix);
 }
 
+let scaleFactor = 0.01;
 function getPlayerModelViewMatrix()
-{
-	let scaleFactor = 0.01;
-	//mat4.identity(mvMatrix);
-	//var rotationMatrix = mat4.create();
-	//mat4.rotate(rotationMatrix, degToRad(45), [1,0,0]);
-	//mat4.multiply(mvMatrix, rotationMatrix);
+{	
 	mat4.translate(mvMatrix, vec3.create([0.0 + playerModelPos[0], 0.01, playerModelPos [2]]));
 	mat4.scale(mvMatrix, vec3.create([scaleFactor, scaleFactor, scaleFactor]));
-}
-
-function setViewDirection()
-{
-	viewDirection = mat4.multiplyVec3(rotationMatrix, vec3.create([0,0, 1]), viewDirection);
-	vec3.normalize(viewDirection, viewDirection);
 }
 
 function getPlayerModelPos()
@@ -547,13 +522,11 @@ function getPlayerModelPos()
 	newPlayerModelPos[0] += xSpeed;
 	newPlayerModelPos[2] += zSpeed;
 	
-	newPlayerModelPos[1] = getPixelHeight(newPlayerModelPos[0], newPlayerModelPos[2]); //set the tank's height based on the terrain, add a little bit to be above the terrain
+	newPlayerModelPos[1] = getPixelHeight(newPlayerModelPos[0], newPlayerModelPos[2]); //get height of block
 	
 	if (newPlayerModelPos[1] < 0)
 	{
-		newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
-		xSpeed = 0;
-		zSpeed = 0;
+		newPlayerModelPos = vec3.create([0, 0, 0]);
 		lose();
 	}
 	
@@ -564,9 +537,7 @@ function getPlayerModelPos()
 		//console.log("pixelColor: " + pixelColor);
 		if (pixelColor[0] > 215 && pixelColor[1] < 50 && pixelColor[2] < 50) //win condition, red pixel
 		{
-			newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
-			xSpeed = 0;
-			zSpeed = 0;
+			newPlayerModelPos = vec3.create([0, 0, 0]);
 			win();
 		}
 	}
@@ -579,7 +550,7 @@ function getPlayerModelPos()
 	var newZ = newPlayerModelPos[2];
 	if (newX > 1.0 || newX < -1.0 || newZ > 1.0 || newZ < -1.0) //tank is out of bounds
 	{
-		newPlayerModelPos = vec3.create([0, getPixelHeight(0,0), 0]);
+		newPlayerModelPos = vec3.create([0, 0, 0]);
 	}	
 	
 	return newPlayerModelPos;
@@ -630,20 +601,20 @@ function getPixelColor(x, z)
 
 }
 
-function getUpVector()
-{
-	var newNormal = vec3.create([0,1,0]);
-		
-	return newNormal;
-}
 
 function lose()
 {
+	xSpeed = 0;
+	zSpeed = 0;
+	initialSpinRotationAngle = 0.0;
 	alert("You lose");
 }
 
 function win()
 {
+	xSpeed = 0;
+	zSpeed = 0;
+	initialSpinRotationAngle = 0.0;
 	alert("You Win!");
 }
 
@@ -735,26 +706,22 @@ function drawPlayerModel()
 	gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
 	gl.vertexAttribPointer(playerModelShader.vertexColorAttribute, cubeVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-		gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
+	gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
 	gl.uniformMatrix4fv(playerModelShader.mvMatrixUniform, false, mvMatrix);
 	
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-	
-
 }
 
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
-var initialSpinRotationAngle = 0.0
+var initialSpinRotationAngle = 0.0;
 var initialSpinRotationAngleIncrement = 0;
 
 function drawScene()
 {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-	
-	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);	
 	
 	if (initialSpinRotationAngle < 360.0)
 	{
