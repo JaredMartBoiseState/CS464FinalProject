@@ -534,11 +534,13 @@ function getTrackViewMatrix()
 
 function getPlayerModelViewMatrix()
 {
-	mat4.identity(mvMatrix);
+	let scaleFactor = 0.01;
+	//mat4.identity(mvMatrix);
 	//var rotationMatrix = mat4.create();
 	//mat4.rotate(rotationMatrix, degToRad(45), [1,0,0]);
 	//mat4.multiply(mvMatrix, rotationMatrix);
-	mat4.translate(mvMatrix, vec3.create([0.0, 0.0, -20.0]));
+	mat4.translate(mvMatrix, vec3.create([0.0 + playerModelPos[0], 0.01, playerModelPos [2]]));
+	mat4.scale(mvMatrix, vec3.create([scaleFactor, scaleFactor, scaleFactor]));
 }
 
 function setViewDirection()
