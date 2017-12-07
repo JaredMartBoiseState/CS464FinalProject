@@ -170,7 +170,7 @@ function initTrackGeometry()
 	var vertices = [];
 	var vertexNormals = [];
 	
-	let gridSize = 200; //the size of the point grid
+	let gridSize = 250; //the size of the point grid
 	var arrayOffset = 0; //the current offset into the arrays
 	
 	for (i = 0; i < gridSize; i++)
@@ -363,25 +363,6 @@ function initPlayerModelGeometry()
 }
 
 
-function generateNormal(pt1, pt2, pt3, out)
-{
-	var V = vec3.create();
-	var W = vec3.create();
-	//console.log("pt1: " + pt1);
-	//console.log("pt2: " + pt2);
-	//console.log("pt3: " + pt3);
-	vec3.subtract(pt2,pt1,V); //V = pt2 - pt1
-	//console.log("V: " + V);
-	vec3.subtract(pt3, pt1, W); //W = pt3 - pt1
-	//console.log("W: " + W);
-	
-	vec3.cross(V,W,out); //normal is cross product of V and W	
-	vec3.negate(out, out); //negate the vector so it isnt upside down
-	vec3.normalize(out, out);
-	
-	return out;
-}
-
 
 // Initialize our texture data and prepare it for rendering
 var exTexture;
@@ -504,7 +485,7 @@ function getTrackViewMatrix()
 	mat4.identity(mvMatrix);
 	playerModelPos = getPlayerModelPos();
 	//console.log(playerModelPos);
-	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 0.05, playerModelPos[2] - 0.25]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
+	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 0.1, playerModelPos[2] - 0.2]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
 	if (initialSpinRotationAngle < 360.0)
 		mat4.multiply(mvMatrix, rotationMatrix);
 }
@@ -512,7 +493,7 @@ function getTrackViewMatrix()
 let scaleFactor = 0.01;
 function getPlayerModelViewMatrix()
 {	
-	mat4.translate(mvMatrix, vec3.create([0.0 + playerModelPos[0], 0.01, playerModelPos [2]]));
+	mat4.translate(mvMatrix, vec3.create([playerModelPos[0], 0.01, playerModelPos[2]]));
 	mat4.scale(mvMatrix, vec3.create([scaleFactor, scaleFactor, scaleFactor]));
 }
 
