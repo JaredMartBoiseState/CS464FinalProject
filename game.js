@@ -493,16 +493,7 @@ function initTrackLighting()
 }
 
 
-var tankSpeed = 0; //speed of the tank over terrain
-var speedScaleFactor = 100000; //division factor to reduce drastic speed changes from small mouse movements
 var playerModelPos = vec3.create([0.0, 1.0 , 0.0]); //tank position: 0,0,0
-var viewDirection = vec3.create([0,0, 1]); //direction the tank is looking, default to straight at the z axis
-var viewMatrix = mat4.create();
-mat4.identity(viewMatrix);
-var tankAngle = 0.0; //angle the tank is facing, degrees off of the y-axis
-var tankRotationScaleFactor = 5; //division factor to reduce drastic tank directions from small mouse movements
-var tankUpVector = vec3.create([0,1,0]);
-var target = vec3.create();
 var rotationMatrix = mat4.create();
 mat4.identity(rotationMatrix);
 
@@ -529,7 +520,8 @@ function getTrackViewMatrix()
 	playerModelPos = getPlayerModelPos();
 	//console.log(playerModelPos);
 	mat4.lookAt(vec3.create([playerModelPos[0], playerModelPos[1] + 0.05, playerModelPos[2] - 0.25]), playerModelPos, vec3.create([0.0, 1.0, 0.0]), mvMatrix);
-	//mat4.multiply(mvMatrix, rotationMatrix);
+	if (initialSpinRotationAngle < 360.0)
+		mat4.multiply(mvMatrix, rotationMatrix);
 }
 
 function getPlayerModelViewMatrix()
@@ -659,7 +651,7 @@ var xSpeed = 0.0;
 var zSpeed = 0.0;
 var speedChange = 0.001;
 function handleKeyPressed(key)
-{
+{	
 	if (key.code == "ArrowLeft")
 	{
 		//console.log("left");
@@ -684,7 +676,6 @@ function handleKeyPressed(key)
 	//console.log("zSpeed: " + zSpeed);
 	//console.log(key);
 }
-
 
 function degToRad(deg) 
 {
@@ -753,12 +744,30 @@ function drawPlayerModel()
 
 }
 
+var rotationMatrix = mat4.create();
+mat4.identity(rotationMatrix);
+var initialSpinRotationAngle = 0.0
+var initialSpinRotationAngleIncrement = 0;
+
 function drawScene()
 {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	
 	mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+	
+	if (initialSpinRotationAngle < 360.0)
+	{
+		initialSpinRotationAngle += initialSpinRotationAngleIncrement;
+		if (initialSpinRotationAngle < 180.0) //speed up spin speed until halfway around, then slow back down
+			initialSpinRotationAngleIncrement += 0.05; //speed up spin speed
+		else
+			initialSpinRotationAngleIncrement -= 0.05; //slow down spin speed
+		//console.log(initialSpinRotationAngle);
+		//console.log(initialSpinRotationAngleIncrement);
+		mat4.identity(rotationMatrix);
+		mat4.rotate(rotationMatrix, degToRad(initialSpinRotationAngle), [0, 1, 0]);	
+	}
 	
 	gl.useProgram(trackShader);
 	drawTrack();
