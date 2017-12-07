@@ -8,7 +8,7 @@ function initWebGLContext(aname) {
     gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
   }
   catch(e) {}
-  
+
   // If we don't have a GL context, give up now
   if (!gl) {
     alert("Unable to initialize WebGL. Your browser may not support it.");
@@ -28,11 +28,11 @@ function initGLScene()
           return;
      }
      // succeeded in initializing WebGL system
-     return gl;     
+     return gl;
 }
 
 
-function getShader(gl, id) 
+function getShader(gl, id)
 {
 	var shaderScript = document.getElementById(id);
 	if (!shaderScript) {
@@ -72,7 +72,7 @@ function getShader(gl, id)
 var trackShader;
 var playerModelShader;
 
-function initShaders() 
+function initShaders()
 {
 	initTrackShader();
 	initPlayerModelShader();
@@ -93,9 +93,9 @@ function initPlayerModelShader()
 		alert("Could not initialise shaders");
 	}
 
-	playerModelShader.vertexPositionAttribute = gl.getAttribLocation(playerModelShader, "aVertexPosition");		
+	playerModelShader.vertexPositionAttribute = gl.getAttribLocation(playerModelShader, "aVertexPosition");
 	gl.enableVertexAttribArray(playerModelShader.vertexPositionAttribute);
-	
+
 	playerModelShader.vertexColorAttribute = gl.getAttribLocation(playerModelShader, "aVertexColor");
 	gl.enableVertexAttribArray(playerModelShader.vertexColorAttribute);
 
@@ -117,12 +117,12 @@ function initTrackShader()
 		alert("Could not initialise shaders");
 	}
 
-	trackShader.vertexPositionAttribute = gl.getAttribLocation(trackShader, "aVertexPosition");		
+	trackShader.vertexPositionAttribute = gl.getAttribLocation(trackShader, "aVertexPosition");
 	gl.enableVertexAttribArray(trackShader.vertexPositionAttribute);
-	
+
 	trackShader.vertexNormalAttribute = gl.getAttribLocation(trackShader, "aVertexNormal");
 	gl.enableVertexAttribArray(trackShader.vertexNormalAttribute);
-	
+
 	trackShader.textureCoordAttribute = gl.getAttribLocation(trackShader, "aTextureCoord");
 	gl.enableVertexAttribArray(trackShader.textureCoordAttribute);
 
@@ -141,16 +141,16 @@ var mvMatrixStack = [];
 // create our projection matrix for projecting from 3D to 2D.
 var pMatrix = mat4.create();
 
-function mvPushMatrix() 
+function mvPushMatrix()
 {
 	var copy = mat4.create();
 	mat4.set(mvMatrix, copy);
 	mvMatrixStack.push(copy);
 }
 
-function mvPopMatrix() 
+function mvPopMatrix()
 {
-	if (mvMatrixStack.length == 0) 
+	if (mvMatrixStack.length == 0)
 	{
 		throw "Invalid popMatrix!";
 	}
@@ -166,13 +166,13 @@ var gridPointNormalBuffer;
 
 function initTrackGeometry()
 {
-	//create the vertices and give them normals		
+	//create the vertices and give them normals
 	var vertices = [];
 	var vertexNormals = [];
-	
+
 	let gridSize = 250; //the size of the point grid
 	var arrayOffset = 0; //the current offset into the arrays
-	
+
 	for (i = 0; i < gridSize; i++)
 	{
 		for (j = 0; j < gridSize; j++)
@@ -181,33 +181,33 @@ function initTrackGeometry()
 			vertices[0 + arrayOffset] = ((j * 1.0) / (gridSize / 2)) - 1.0; //vary X values from -1.0 to 1.0
 			vertices[1 + arrayOffset] = 0; //set Y value to 0
 			vertices[2 + arrayOffset] = ((i * 1.0) / (gridSize / 2)) - 1.0; //vary Z values from -1.0 to 1.0
-			
+
 			//normal for each vertex for lighting using the Y coordinate as a simple vector [0,Y,0]
 			vertexNormals[0 + arrayOffset] = 0.0;
 			vertexNormals[1 + arrayOffset] = 1.0;
 			vertexNormals[2 + arrayOffset] = 0.0;
-			
+
 			arrayOffset = arrayOffset + 3;
 		}
 	}
-	
+
 	gridPointPositionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointPositionBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 	gridPointPositionBuffer.itemSize = 3;
 	gridPointPositionBuffer.numItems = gridSize * gridSize;
-	
+
 	gridPointNormalBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointNormalBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
 	gridPointNormalBuffer.itemSize = 3;
-	gridPointNormalBuffer.numItems = gridSize * gridSize;	
-	
-	
-	//give the vertices texture coordinates		
+	gridPointNormalBuffer.numItems = gridSize * gridSize;
+
+
+	//give the vertices texture coordinates
 	var textureCoords = []; //texture coordinate array
 	var texCoordOffset = 0; //offset into the texture coordinate array
-	
+
 	for (i = 0; i < gridSize; i++)
 	{
 		for (j = 0; j < gridSize; j++)
@@ -218,16 +218,16 @@ function initTrackGeometry()
 	}
 
 	gridPointTextureCoordBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointTextureCoordBuffer);	
+	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointTextureCoordBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
 	gridPointTextureCoordBuffer.itemSize = 2;
 	gridPointTextureCoordBuffer.numItems = texCoordOffset / 2;
-	
-	
-	//index for triangles		
+
+
+	//index for triangles
 	var gridPointIndices = [];
 	var pointIndicesOffset = 0;
-	
+
 	for (i = 0; i < gridSize - 1; i++)
 	{
 		for (j = 0; j < gridSize - 1; j++)
@@ -236,11 +236,11 @@ function initTrackGeometry()
 			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 0; //bot-left lower triangle
 			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 1; //bot-right lower triangle
 			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 0; //top-left lower triangle
-			
+
 			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 0; //top-left upper triangle
 			gridPointIndices[pointIndicesOffset++] = (i * gridSize) + j + 1; //bot-right upper triangle
 			gridPointIndices[pointIndicesOffset++] = ((i + 1) * gridSize) + j + 1; //top-right upper triangle
-			
+
 		}
 	}
 
@@ -254,7 +254,7 @@ function initTrackGeometry()
 function initPlayerModelGeometry()
 {
 	    //create the vertices
-        var vertices = 
+        var vertices =
 		[
             // Front face
             -1.0, -1.0,  1.0,
@@ -292,60 +292,60 @@ function initPlayerModelGeometry()
             -1.0,  1.0,  1.0,
             -1.0,  1.0, -1.0
 		];
-		
+
 		cubeVertexPositionBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         cubeVertexPositionBuffer.itemSize = 3;
         cubeVertexPositionBuffer.numItems = 24;
-		
+
 		//vertex colors
-		var cubeVertexColors = 
+		var cubeVertexColors =
 		[
 			//front face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
 			1.0, 0.0, 1.0, 1.0,
-			
+
 			//back face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
 			1.0, 0.0, 1.0, 1.0,
-			
+
 			//top face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
 			1.0, 0.0, 1.0, 1.0,
-			
+
 			//bottom face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
 			1.0, 0.0, 1.0, 1.0,
-			
+
 			//left face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
 			1.0, 0.0, 1.0, 1.0,
-			
+
 			//right face
 			1.0, 0.0, 0.0, 1.0,
 			0.0, 1.0, 0.0, 1.0,
 			0.0, 0.0, 1.0, 1.0,
-			1.0, 0.0, 1.0, 1.0			
+			1.0, 0.0, 1.0, 1.0
 		];
 		cubeVertexColorBuffer = gl.createBuffer();
 		gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
 		gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeVertexColors), gl.STATIC_DRAW);
 		cubeVertexColorBuffer.itemSize = 4;
 		cubeVertexColorBuffer.numItems = 24;
-		
-		//index for triangles		
-		var cubeVertexIndices = 
+
+		//index for triangles
+		var cubeVertexIndices =
 		[
 			0, 1, 2,      0, 2, 3,    // Front face
             4, 5, 6,      4, 6, 7,    // Back face
@@ -376,7 +376,7 @@ function initTextures()
       handleLoadedTexture(exTexture)
     }
 
-    exTexture.image.src = "Textures/track1.png";
+    exTexture.image.src = "Textures/track2.png";
   }
 
 function handleLoadedTexture(texture)
@@ -407,42 +407,42 @@ function handleLoadedTexture(texture)
 	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
 }
-  
+
 function changeTexture(texture)
 {
 	exTexture.image.src = texture;
 	handleLoadedTexture(exTexture);
 }
-  
-  
-  
+
+
+
 //Initialize everything for starting up a simple webGL application
 function launchGraphics()
 {
    // attach 'Handler' functions to handle events generated by the canvas.
    // for when the browser is resized or closed.
 
-   // first initialize webgl components 
+   // first initialize webgl components
    var gl = initGLScene();
-   
+
    // now build basic geometry objects.
    initShaders();
    initTrackGeometry();
    initTrackLighting();
    initPlayerModelGeometry();
    initTextures();
-   
+
    mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.01, 100.0, pMatrix);
-   
+
    var canvas = document.getElementById("graphicsCanvas");
    window.addEventListener("keydown", handleKeyPressed, false);
-   
+
    gl.clearColor(0.1,0.1,0.1,1.0);
    gl.enable(gl.DEPTH_TEST);
    // Draw the Scene
    Frames();
    // If doing an animation need to add code to rotate our geometry
-   
+
 }
 
 var ambientColor;
@@ -456,20 +456,20 @@ function initTrackLighting()
 	var ambientR = 0.5;//parseFloat(document.getElementById("ambientR").value);
 	var ambientG = 0.5;//parseFloat(document.getElementById("ambientG").value);
 	var ambientB = 0.5;//parseFloat(document.getElementById("ambientB").value);
-	
+
 	var lightDirectionX = 0.0;//parseFloat(document.getElementById("lightDirectionX").value);
 	var lightDirectionY = -1.0;//parseFloat(document.getElementById("lightDirectionY").value);
 	var lightDirectionZ = 0.0;//parseFloat(document.getElementById("lightDirectionZ").value);
-	
+
 	var directionalR = 1.0;//parseFloat(document.getElementById("directionalR").value);
 	var directionalG = 1.0;//parseFloat(document.getElementById("directionalG").value);
 	var directionalB = 1.0;//parseFloat(document.getElementById("directionalB").value);
-	
+
 	ambientColor = vec3.create([ambientR, ambientG, ambientB]);
 	directionalColor = vec3.create([directionalR, directionalG, directionalB]);
 	lightingDirection = [lightDirectionX, lightDirectionY, lightDirectionZ];
 	adjustedLightingDirection = vec3.create();
-	
+
 	vec3.normalize(lightingDirection, adjustedLightingDirection);
 	vec3.scale(adjustedLightingDirection, -1);
 
@@ -492,7 +492,7 @@ function getTrackViewMatrix()
 
 let scaleFactor = 0.01;
 function getPlayerModelViewMatrix()
-{	
+{
 	mat4.translate(mvMatrix, vec3.create([playerModelPos[0], 0.01, playerModelPos[2]]));
 	mat4.scale(mvMatrix, vec3.create([scaleFactor, scaleFactor, scaleFactor]));
 }
@@ -502,15 +502,15 @@ function getPlayerModelPos()
 	var newPlayerModelPos = playerModelPos; //the new pos
 	newPlayerModelPos[0] += xSpeed;
 	newPlayerModelPos[2] += zSpeed;
-	
+
 	newPlayerModelPos[1] = getPixelHeight(newPlayerModelPos[0], newPlayerModelPos[2]); //get height of block
-	
+
 	if (newPlayerModelPos[1] < 0)
 	{
 		newPlayerModelPos = vec3.create([0, 0, 0]);
 		lose();
 	}
-	
+
 	if (pixelColors)
 	{
 		//console.log("x, z: " + newPlayerModelPos[0], newPlayerModelPos[2]);
@@ -522,9 +522,9 @@ function getPlayerModelPos()
 			win();
 		}
 	}
-	
+
 	newPlayerModelPos[1] = 0.0;
-	
+
 	//handle out of bounds driving by resetting location to 0,0
 	var newX = newPlayerModelPos[0];
 	var newY = newPlayerModelPos[1];
@@ -532,33 +532,33 @@ function getPlayerModelPos()
 	if (newX > 1.0 || newX < -1.0 || newZ > 1.0 || newZ < -1.0) //tank is out of bounds
 	{
 		newPlayerModelPos = vec3.create([0, 0, 0]);
-	}	
-	
+	}
+
 	return newPlayerModelPos;
 }
 
 function getPixelHeight(x, z)
 {
 	var pixelHeight = 0.5;
-	
+
 	if (pixelColors)
-	{	
+	{
 		var pixelArrayOffset = 0;
 		var xOffset = Math.round(((x + 1.0) / 2) * exTexture.image.width);
 		var yOffset = Math.round(((z + 1.0) / 2) * exTexture.image.height);
 		//console.log("xOffset: " + xOffset + " yOffset: " + yOffset);
-	
+
 		pixelArrayOffset = (yOffset * exTexture.image.width * 4) + (4 * xOffset);
-		
+
 		var red = pixelColors[pixelArrayOffset + 0] / 255.0;
 		var green = pixelColors[pixelArrayOffset + 1] / 255.0;
 		var blue = pixelColors[pixelArrayOffset + 2] / 255.0;
-		
+
 		pixelHeight = Math.sqrt(red * red + green * green + blue * blue); //height is between 0 and sqrt(3)
 		pixelHeight	= (pixelHeight * (2 / Math.sqrt(3))) - 1.0; //scale to -1 to 1
 		//console.log(pixelHeight);
 	}
-	
+
 	return pixelHeight;
 }
 
@@ -570,14 +570,14 @@ function getPixelColor(x, z)
 	//console.log("xOffset: " + xOffset + " yOffset: " + yOffset);
 
 	pixelArrayOffset = (yOffset * exTexture.image.width * 4) + (4 * xOffset);
-	
+
 	var color = vec3.create();
-	
+
 	color[0] = pixelColors[pixelArrayOffset + 0];
 	color[1] = pixelColors[pixelArrayOffset + 1];
 	color[2] = pixelColors[pixelArrayOffset + 2];
 	//console.log(color);
-	
+
 	return color;
 
 }
@@ -606,7 +606,7 @@ var xSpeed = 0.0;
 var zSpeed = 0.0;
 var speedChange = 0.001;
 function handleKeyPressed(key)
-{	
+{
 	if (key.code == "ArrowLeft")
 	{
 		//console.log("left");
@@ -632,7 +632,7 @@ function handleKeyPressed(key)
 	//console.log(key);
 }
 
-function degToRad(deg) 
+function degToRad(deg)
 {
     return deg * Math.PI / 180;
 }
@@ -643,24 +643,24 @@ function degToRad(deg)
 // OpenGL has convenience methods for this such as glPerspective().
 // finally we call the gl draw methods to draw our defined geometry objects.
 
-    
-function drawTrack() 
+
+function drawTrack()
 {
 	getTrackViewMatrix();
-		
+
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointPositionBuffer);
 	gl.vertexAttribPointer(trackShader.vertexPositionAttribute, gridPointPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointTextureCoordBuffer);
 	gl.vertexAttribPointer(trackShader.textureCoordAttribute, gridPointTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
-	
+
 	gl.bindBuffer(gl.ARRAY_BUFFER, gridPointNormalBuffer);
 	gl.vertexAttribPointer(trackShader.vertexNormalAttribute, gridPointNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 	gl.activeTexture(gl.TEXTURE0);
 	gl.bindTexture(gl.TEXTURE_2D, exTexture);
-	gl.uniform1i(trackShader.samplerUniform, 0);	
-	
+	gl.uniform1i(trackShader.samplerUniform, 0);
+
 	var normalMatrix = mat3.create();
 	mat4.toInverseMat3(mvMatrix, normalMatrix);
 	mat3.transpose(normalMatrix);
@@ -668,16 +668,16 @@ function drawTrack()
 	gl.uniform3fv(trackShader.ambientColorUniform, ambientColor);
 	gl.uniform3fv(trackShader.lightingDirectionUniform, adjustedLightingDirection);
 	gl.uniform3fv(trackShader.directionalColorUniform, directionalColor);
-	
+
 	gl.uniformMatrix4fv(trackShader.pMatrixUniform, false, pMatrix);
     gl.uniformMatrix4fv(trackShader.mvMatrixUniform, false, mvMatrix);
-	
+
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, gridPointIndexBuffer);
 	gl.drawElements(gl.TRIANGLES, gridPointIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-	
 
-	
-}	
+
+
+}
 
 function drawPlayerModel()
 {
@@ -692,7 +692,7 @@ function drawPlayerModel()
 
 	gl.uniformMatrix4fv(playerModelShader.pMatrixUniform, false, pMatrix);
 	gl.uniformMatrix4fv(playerModelShader.mvMatrixUniform, false, mvMatrix);
-	
+
 	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
 	gl.drawElements(gl.TRIANGLES, cubeVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
 }
@@ -705,8 +705,8 @@ var initialSpinRotationAngleIncrement = 0;
 function drawScene()
 {
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);	
-	
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
 	if (initialSpinRotationAngle < 360.0)
 	{
 		initialSpinRotationAngle += initialSpinRotationAngleIncrement;
@@ -717,14 +717,14 @@ function drawScene()
 		//console.log(initialSpinRotationAngle);
 		//console.log(initialSpinRotationAngleIncrement);
 		mat4.identity(rotationMatrix);
-		mat4.rotate(rotationMatrix, degToRad(initialSpinRotationAngle), [0, 1, 0]);	
+		mat4.rotate(rotationMatrix, degToRad(initialSpinRotationAngle), [0, 1, 0]);
 	}
-	
+
 	gl.useProgram(trackShader);
 	drawTrack();
-	
+
 	gl.useProgram(playerModelShader);
-	drawPlayerModel();	
+	drawPlayerModel();
 
 }
 
@@ -741,7 +741,7 @@ function calculateFPS()
 
 	lastTime = now;
 
-	if(elapsedTime >= 1000) 
+	if(elapsedTime >= 1000)
 	{
 		fps = frameCount;
 		frameCount = 0;
@@ -756,4 +756,3 @@ function Frames() {
 	calculateFPS();
 	drawScene();
 }
-
