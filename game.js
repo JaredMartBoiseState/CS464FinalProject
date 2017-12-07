@@ -212,8 +212,8 @@ function initTrackGeometry()
 	{
 		for (j = 0; j < gridSize; j++)
 		{
-			textureCoords[texCoordOffset++] = 0.0 + (j * 1.0) / gridSize;
-			textureCoords[texCoordOffset++] = 0.0 + (i * 1.0) / gridSize;
+			textureCoords[texCoordOffset++] = 0.0 + (j * 1.0) / (gridSize - 1);
+			textureCoords[texCoordOffset++] = 0.0 + (i * 1.0) / (gridSize - 1);
 		}
 	}
 
@@ -601,20 +601,23 @@ function getPixelColor(x, z)
 
 }
 
-
+var loseSound = new Audio("Sounds/bruh.mp3");
 function lose()
 {
 	xSpeed = 0;
 	zSpeed = 0;
 	initialSpinRotationAngle = 0.0;
+	loseSound.play();
 	alert("You lose");
 }
 
+var winSound = new Audio("Sounds/horns.mp3");
 function win()
 {
 	xSpeed = 0;
 	zSpeed = 0;
 	initialSpinRotationAngle = 0.0;
+	winSound.play();
 	alert("You Win!");
 }
 
