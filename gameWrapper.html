@@ -128,7 +128,7 @@
 	<body onload="launchGraphics()">
 		<h1>CS 464 Final Project</h1>
 		<h4>Jared Mart & Bryan Bixler</h4>
-		<h3> Navigate the block to the red finish line using the arrow keys! </h3>
+		<h3> Instructions: Use the Arrow Keys to navigate the block to the red finish line</h3>
 		
 		<!--<h5> Drag the canvas left and right to steer the tank, drag up and down to go faster or slower </h5>-->
 
@@ -140,46 +140,9 @@
 				If you're seeing this your web browser doesn't support the &lt;canvas>&gt; element. Ouch!
 				</canvas>
 			</td>
-<!--
 			<td>
-				<h3>Pick a texture</h3>
-				<table style="border: 0; padding: 5px;">
-						<tr>
-							<td> <input type="radio" onclick="changeTexture('Textures/black.png');" name="texture" value="black"> Black<br> </td>
-							<td> <input type="radio" onclick="changeTexture('Textures/white.png');" name="texture" value="white"> White<br> </td>
-							<td> <input type="radio" onclick="changeTexture('Textures/heightmap.png');" name="texture" value="heightmap"> Height Map<br> 
-							<td> <input type="radio" onclick="changeTexture('Textures/track1.png');" name="texture" value="track1" checked> Track<br></td>
-
-						</tr>
-				</table>
-
-				<h3>Directional Light:</h3>
-				<table style="border: 0; padding: 10px;">
-					<tr>
-						<td><b>Direction:</b></td>
-						<td>X: <input type="text" id="lightDirectionX" value="0.0" /></td>
-						<td>Y: <input type="text" id="lightDirectionY" value="-1.0" /></td>
-						<td>Z: <input type="text" id="lightDirectionZ" value="0.0" /></td>
-					</tr>	
-					<tr>	
-						<td><b>Color:</b></td>
-						<td>R: <input type="text" id="directionalR" value="1.0" /></td>
-						<td>G: <input type="text" id="directionalG" value="1.0" /></td>
-						<td>B: <input type="text" id="directionalB" value="1.0" /></td>
-					</tr>
-				</table>
-
-				<h3>Ambient light:</h3>
-				<table style="border: 0; padding: 10px;">
-					<tr>
-						<td><b>Color:</b></td>
-						<td>R: <input type="text" id="ambientR" value="0.5" /></td>
-						<td>G: <input type="text" id="ambientG" value="0.5" /></td>
-						<td>B: <input type="text" id="ambientB" value="0.5" /></td>
-					</tr>
-				</table>
-			</td>
--->			
+				<div id="fps"></div>
+			</td>			
 		</table>
 	</body>
 </html>

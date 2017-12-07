@@ -773,13 +773,36 @@ function drawScene()
 	drawTrack();
 	
 	gl.useProgram(playerModelShader);
-	drawPlayerModel();
-	
+	drawPlayerModel();	
 
+}
+
+var elapsedTime = 0;
+var frameCount = 0;
+var lastTime = Date.now();
+var now;
+function calculateFPS()
+{
+	//console.log("calculating fps");
+	now = Date.now();
+	frameCount++;
+	elapsedTime += (now - lastTime);
+
+	lastTime = now;
+
+	if(elapsedTime >= 1000) 
+	{
+		fps = frameCount;
+		frameCount = 0;
+		elapsedTime = 0;
+		//console.log(fps);
+		document.getElementById('fps').innerHTML = "FPS: " + fps;
+	}
 }
 
 function Frames() {
 	requestAnimFrame(Frames);
+	calculateFPS();
 	drawScene();
 }
 
