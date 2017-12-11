@@ -376,7 +376,7 @@ function initTextures()
       handleLoadedTexture(exTexture)
     }
 
-    exTexture.image.src = "Textures/track2.png";
+    exTexture.image.src = "Textures/track1.png";
   }
 
 function handleLoadedTexture(texture)
